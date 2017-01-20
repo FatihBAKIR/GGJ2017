@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
@@ -22,6 +22,9 @@ namespace DefaultNamespace
 
         private List<int>[,] _gridHints;
         List<int> _tris = new List<int>();
+
+		private Wave waveSystem=new Wave();
+		private float currentTime=0.0f;
 
         public void Start()
         {
@@ -142,11 +145,12 @@ namespace DefaultNamespace
                     }
                 }
             }
-
             for (int j = 0; j < Height + 1; ++j)
             {
                 for (int i = 0; i < Width + 1; i++)
                 {
+                    _map[i, j] +=waveSystem.checkWaveEffect(new Vector3(i,0,j),currentTime);
+
                     foreach (var index in _gridHints[i, j])
                     {
                         _vertices[index].y = _map[i, j];
@@ -167,6 +171,7 @@ namespace DefaultNamespace
 
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
+			currentTime += Time.deltaTime;
         }
     }
 }

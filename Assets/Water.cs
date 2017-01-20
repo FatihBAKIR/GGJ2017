@@ -9,6 +9,8 @@ namespace DefaultNamespace
         public int Width;
         public int Height;
 
+        public int Resolution;
+
         public float BaseDepth;
 
         private float[,] _map;
@@ -20,7 +22,6 @@ namespace DefaultNamespace
 
         private List<int>[,] _gridHints;
         List<int> _tris = new List<int>();
-
 
         public void Start()
         {
@@ -95,9 +96,9 @@ namespace DefaultNamespace
 
         void DoFluctuate()
         {
-            for (int i = 0; i < Width + 1; ++i)
+            for (int j = 0; j < Height + 1; j += Resolution)
             {
-                for (int j = 0; j < Height + 1; ++j)
+                for (int i = 0; i < Width + 1; i += Resolution)
                 {
                     _fluctuate[i, j] += 0.01f;
                 }
@@ -106,24 +107,46 @@ namespace DefaultNamespace
 
         void UpdateMap()
         {
+            for (int j = 0; j < Height + 1; j += 1)
+            {
+                for (int i = 0; i < Width + 1; i += 1)
+                {
+                    _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 5 + 0.5f;
+                }
+            }
 
+            for (int j = 0; j < Height; j += Resolution)
+            {
+                for (int i = 0; i < Width; i += Resolution)
+                {
+                    var a = _map[i, j];
+                    var b = _map[i + Resolution, j];
+                    var c = _map[i, j + Resolution];
+                    var d = _map[i + Resolution, j + Resolution];
+
+                    for (var l = 1; l < Resolution; ++l)
+                    {
+                        var t = l * 1.0f / Resolution;
+
+                        _map[i + l, j] = a + (b - a) * t;
+                        _map[i, j + l] = a + (c - a) * t;
+                        _map[i + l, j + Resolution] = c + (d - c) * t;
+                        _map[i + Resolution, j + l] = b + (d - b) * t;
+                    }
+
+                    // diagonal first
+                    for (var l = 1; l < Resolution; ++l)
+                    {
+                        var t = l * 1.0f / Resolution;
+                        _map[i + l, j + l] = a + (d - a) * t;
+                    }
+                }
+            }
 
             for (int j = 0; j < Height + 1; ++j)
             {
-                for (int i = 0; i < Width + 1; ++i)
+                for (int i = 0; i < Width + 1; i++)
                 {
-                    _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 5 + 0.5f;
-
-                    if (j == 9)
-                    {
-                        _map[i, j] += 1;
-                    }
-
-                    if (j == 10 || j == 8)
-                    {
-                        _map[i, j] += 0.5f;
-                    }
-
                     foreach (var index in _gridHints[i, j])
                     {
                         _vertices[index].y = _map[i, j];
@@ -136,6 +159,7 @@ namespace DefaultNamespace
         {
             DoFluctuate();
             UpdateMap();
+
             _mesh.Clear();
 
             _mesh.vertices = _vertices;
@@ -143,15 +167,6 @@ namespace DefaultNamespace
 
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
-        }
-
-        private void OnDrawGizmos()
-        {
-            return;
-            foreach (var vertex in _vertices)
-            {
-                Gizmos.DrawLine(new Vector3(vertex.x, 0, vertex.z), vertex);
-            }
         }
     }
 }

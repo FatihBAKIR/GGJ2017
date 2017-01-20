@@ -1,4 +1,6 @@
-﻿﻿using UnityEngine;
+﻿﻿using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
 
 namespace DefaultNamespace
 {
@@ -15,7 +17,10 @@ namespace DefaultNamespace
         private Mesh _mesh;
 
         private Vector3[] _vertices;
-        private int[] _tris;
+
+        private List<int>[,] _gridHints;
+        List<int> _tris = new List<int>();
+
 
         public void Start()
         {
@@ -23,8 +28,18 @@ namespace DefaultNamespace
             _fluctuate = new float[Width + 1, Height + 1];
             _mesh = new Mesh();
 
-            _vertices = new Vector3[(Width + 1) * (Height + 1)];
-            _tris = new int[Width * Height * 3 * 2];
+            _vertices = new Vector3[Width * Height * 6];
+            _gridHints = new List<int>[Width + 1, Height + 1];
+
+            for (int i = 0; i < Width + 1; i++)
+            {
+                for (int j = 0; j < Height + 1; j++)
+                {
+                    _gridHints[i, j] = new List<int>();
+                }
+            }
+
+            var nextVert = 0;
 
             for (int j = 0; j < Height; ++j)
             {
@@ -32,36 +47,48 @@ namespace DefaultNamespace
                 {
                     var kutuNo = j * Width + i;
 
-                    var sol_ust = kutuNo + j;
-                    var sag_ust = sol_ust + 1;
-                    var sol_alt = sag_ust + Width;
-                    var sag_alt = sol_alt + 1;
+                    var tri1_0 = nextVert++;
+                    var tri1_1 = nextVert++;
+                    var tri1_2 = nextVert++;
 
-                    _tris[kutuNo * 6 + 0] = sol_ust;
-                    _tris[kutuNo * 6 + 1] = sag_alt;
-                    _tris[kutuNo * 6 + 2] = sol_alt;
+                    var tri2_0 = nextVert++;
+                    var tri2_1 = nextVert++;
+                    var tri2_2 = nextVert++;
 
-                    _tris[kutuNo * 6 + 3] = sol_ust;
-                    _tris[kutuNo * 6 + 4] = sag_ust;
-                    _tris[kutuNo * 6 + 5] = sag_alt;
+                    _gridHints[i, j].Add(tri1_0);
+                    _gridHints[i, j].Add(tri2_0);
+
+                    _gridHints[i + 1, j].Add(tri1_1);
+
+                    _gridHints[i, j + 1].Add(tri2_2);
+
+                    _gridHints[i + 1, j + 1].Add(tri1_2);
+                    _gridHints[i + 1, j + 1].Add(tri2_1);
+
+                    _tris.Add(tri1_0);
+                    _tris.Add(tri1_1);
+                    _tris.Add(tri1_2);
+                    _tris.Add(tri2_0);
+                    _tris.Add(tri2_1);
+                    _tris.Add(tri2_2);
                 }
             }
+
 
             for (int j = 0; j < Height + 1; ++j)
             {
                 for (int i = 0; i < Width + 1; ++i)
                 {
-                    _vertices[j * (Width + 1) + i] = new Vector3(i, BaseDepth, j);
-                    _map[i, j] = BaseDepth;
                     _fluctuate[i, j] = Random.Range(0, 2 * Mathf.PI);
+
+                    foreach (var index in _gridHints[i, j])
+                    {
+                        _vertices[index] = new Vector3(i - Width / 2, 0, j - Height / 2);
+                    }
                 }
             }
 
-            _mesh.vertices = _vertices;
-            _mesh.triangles = _tris;
-
-            _mesh.RecalculateNormals();
-            _mesh.RecalculateBounds();
+            Update();
 
             GetComponent<MeshFilter>().mesh = _mesh;
         }
@@ -72,19 +99,35 @@ namespace DefaultNamespace
             {
                 for (int j = 0; j < Height + 1; ++j)
                 {
-                    _fluctuate[i, j] += 0.05f;
+                    _fluctuate[i, j] += 0.01f;
                 }
             }
         }
 
         void UpdateMap()
         {
+
+
             for (int j = 0; j < Height + 1; ++j)
             {
                 for (int i = 0; i < Width + 1; ++i)
                 {
                     _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 5 + 0.5f;
-                    _vertices[j * (Width + 1) + i].y = _map[i, j];
+
+                    if (j == 9)
+                    {
+                        _map[i, j] += 1;
+                    }
+
+                    if (j == 10 || j == 8)
+                    {
+                        _map[i, j] += 0.5f;
+                    }
+
+                    foreach (var index in _gridHints[i, j])
+                    {
+                        _vertices[index].y = _map[i, j];
+                    }
                 }
             }
         }
@@ -96,7 +139,7 @@ namespace DefaultNamespace
             _mesh.Clear();
 
             _mesh.vertices = _vertices;
-            _mesh.triangles = _tris;
+            _mesh.triangles = _tris.ToArray();
 
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();

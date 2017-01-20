@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Wave : MonoBehaviour {
+public class Wave
+{
+    public float Strength;
+    public float Radius;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public Vector3 Center;
+
+
 }

@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
@@ -20,7 +20,8 @@ namespace DefaultNamespace
 
         private List<int>[,] _gridHints;
         List<int> _tris = new List<int>();
-
+		private Wave waveSystem=new Wave();
+		private float currentTime=0.0f;
 
         public void Start()
         {
@@ -114,15 +115,7 @@ namespace DefaultNamespace
                 {
                     _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 5 + 0.5f;
 
-                    if (j == 9)
-                    {
-                        _map[i, j] += 1;
-                    }
-
-                    if (j == 10 || j == 8)
-                    {
-                        _map[i, j] += 0.5f;
-                    }
+					_map[i, j] +=waveSystem.checkWaveEffect(new Vector3(i,0,j),currentTime);
 
                     foreach (var index in _gridHints[i, j])
                     {
@@ -143,6 +136,7 @@ namespace DefaultNamespace
 
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
+			currentTime += Time.deltaTime;
         }
 
         private void OnDrawGizmos()

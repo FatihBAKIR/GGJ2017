@@ -79,7 +79,7 @@ public class Wave
                         if (Lookup.FirstOrDefault(a => a != null && a.Contains(new Vector3(x, 0, y))) == null)
                         {
                             Lookup[i].Add(new Vector3(x ,0 , y));
-                            Debug.LogFormat("{0} -> ({1}, {2})", i, x ,y);
+                           
                         }
                     }
                 }

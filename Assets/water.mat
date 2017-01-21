@@ -7,12 +7,12 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: water
-  m_Shader: {fileID: 45, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _ALPHATEST_ON _EMISSION
+  m_Shader: {fileID: 4800000, guid: 55af9914333a949398e536ca339d7710, type: 3}
+  m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _EMISSION
   m_LightmapFlags: 1
-  m_CustomRenderQueue: 2450
+  m_CustomRenderQueue: 3000
   stringTagMap:
-    RenderType: TransparentCutout
+    RenderType: Transparent
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
@@ -47,6 +47,24 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _Foam
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _FoamGradient
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _Fresnel
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _MainTex
       second:
         m_Texture: {fileID: 0}
@@ -71,6 +89,30 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _ReflectionTex
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _ReflectiveColor
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _RefractionTex
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _ShoreTex
+      second:
+        m_Texture: {fileID: 2800000, guid: 6e095b97e1f4942beb66aed786f8e63a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _SpecGlossMap
       second:
         m_Texture: {fileID: 0}
@@ -88,7 +130,10 @@ Material:
       second: 1
     - first:
         name: _DstBlend
-      second: 0
+      second: 10
+    - first:
+        name: _FoamStrength
+      second: 1
     - first:
         name: _GlossMapScale
       second: 1
@@ -103,13 +148,22 @@ Material:
       second: 0.518
     - first:
         name: _Mode
-      second: 1
+      second: 3
     - first:
         name: _OcclusionStrength
       second: 1
     - first:
         name: _Parallax
       second: 0.02
+    - first:
+        name: _ReflDistort
+      second: 0.44
+    - first:
+        name: _RefrDistort
+      second: 0.4
+    - first:
+        name: _Shininess
+      second: 7
     - first:
         name: _SmoothnessTextureChannel
       second: 0
@@ -123,15 +177,45 @@ Material:
         name: _UVSec
       second: 0
     - first:
+        name: _WaveScale
+      second: 0.063
+    - first:
         name: _ZWrite
-      second: 1
+      second: 0
+    - first:
+        name: _isInnerAlphaBlendOrColor
+      second: 0
     m_Colors:
     - first:
+        name: WaveSpeed
+      second: {r: 19, g: 9, b: -16, a: -7}
+    - first:
+        name: _BaseColor
+      second: {r: 0, g: 0.4086206, b: 0.75, a: 1}
+    - first:
+        name: _BumpDirection
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _BumpTiling
+      second: {r: 0.1, g: 0.1, b: 1, a: 3}
+    - first:
         name: _Color
-      second: {r: 0, g: 0.010649052, b: 0.13725491, a: 1}
+      second: {r: 0, g: 0.010649052, b: 0.13725491, a: 0.5019608}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
+        name: _Foam
+      second: {r: 0, g: 0, b: 0, a: 0}
+    - first:
+        name: _HorizonColor
+      second: {r: 0.172, g: 0.463, b: 0.435, a: 1}
+    - first:
+        name: _InvFadeParemeter
+      second: {r: -0.5, g: -0.03, b: 1.3, a: 1}
+    - first:
+        name: _RefrColor
+      second: {r: 0.34, g: 0.85, b: 0.92, a: 1}
+    - first:
         name: _SpecColor
-      second: {r: 0.5441177, g: 0.5441177, b: 0.5441177, a: 1}
+      second: {r: 0.77205884, g: 0.77205884, b: 0.77205884, a: 0.5019608}

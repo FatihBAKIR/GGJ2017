@@ -19,15 +19,17 @@ namespace DefaultNamespace
         private Mesh _mesh;
 
         private Vector3[] _vertices;
+        private Vector3[,] _forces;
+        private int[] _trisCache;
 
         private List<int>[,] _gridHints;
         List<int> _tris = new List<int>();
 
-		private Wave waveSystem=new Wave();
-		private float currentTime=0.0f;
+        public WaveSystem waveSystem = new WaveSystem();
 
         public void Start()
         {
+            _forces = new Vector3[Width + 1, Height + 1];
             _map = new float[Width + 1, Height + 1];
             _fluctuate = new float[Width + 1, Height + 1];
             _mesh = new Mesh();
@@ -92,6 +94,8 @@ namespace DefaultNamespace
                 }
             }
 
+            _trisCache = _tris.ToArray();
+
             Update();
 
             GetComponent<MeshFilter>().mesh = _mesh;
@@ -99,28 +103,28 @@ namespace DefaultNamespace
 
         void DoFluctuate()
         {
-            for (int j = 0; j < Height + 1; j += Resolution)
+            for (int i = 0; i < Width + 1; i += Resolution)
             {
-                for (int i = 0; i < Width + 1; i += Resolution)
+                for (int j = 0; j < Height + 1; j += Resolution)
                 {
-                    _fluctuate[i, j] += 0.01f;
+                    _fluctuate[i, j] += Random.Range(0.005f, 0.015f);
                 }
             }
         }
 
         void UpdateMap()
         {
-            for (int j = 0; j < Height + 1; j += 1)
+            for (int i = 0; i < Width + 1; i += Resolution)
             {
-                for (int i = 0; i < Width + 1; i += 1)
+                for (int j = 0; j < Height + 1; j += Resolution)
                 {
-                    _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 5 + 0.5f;
+                    _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 2.5f + 0.5f;
                 }
             }
 
-            for (int j = 0; j < Height; j += Resolution)
+            for (int i = 0; i < Width; i += Resolution)
             {
-                for (int i = 0; i < Width; i += Resolution)
+                for (int j = 0; j < Height; j += Resolution)
                 {
                     var a = _map[i, j];
                     var b = _map[i + Resolution, j];
@@ -135,21 +139,18 @@ namespace DefaultNamespace
                         _map[i, j + l] = a + (c - a) * t;
                         _map[i + l, j + Resolution] = c + (d - c) * t;
                         _map[i + Resolution, j + l] = b + (d - b) * t;
-                    }
-
-                    // diagonal first
-                    for (var l = 1; l < Resolution; ++l)
-                    {
-                        var t = l * 1.0f / Resolution;
                         _map[i + l, j + l] = a + (d - a) * t;
                     }
                 }
             }
-            for (int j = 0; j < Height + 1; ++j)
+
+            for (int i = 0; i < Width + 1; i++)
             {
-                for (int i = 0; i < Width + 1; i++)
+                for (int j = 0; j < Height + 1; ++j)
                 {
-                    _map[i, j] +=waveSystem.checkWaveEffect(new Vector3(i,0,j),currentTime);
+                    var res = waveSystem.checkWaveEffect(new Vector3(i, 0, j), Time.timeSinceLevelLoad);
+                    _map[i, j] += res.Height;
+                    _forces[i, j] = res.Force;
 
                     foreach (var index in _gridHints[i, j])
                     {
@@ -159,19 +160,63 @@ namespace DefaultNamespace
             }
         }
 
+        public float GetHeight(Vector3 pos)
+        {
+            return _map[(int) pos.x + Width / 2, (int) pos.z + Height / 2];
+        }
+
+        public Vector3 GetForce(Vector3 pos)
+        {
+            var v = _forces[(int) pos.x + Width / 2, (int) pos.z + Height / 2];
+            v.x *= -1;
+            return v;
+        }
+
+        private bool _animate;
+
         public void Update()
         {
-            DoFluctuate();
-            UpdateMap();
+            if (Input.GetMouseButtonUp(0))
+            {
+                Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit rh;
+                if (Physics.Raycast(r, out rh))
+                {
+                    var x = transform.InverseTransformPoint(rh.point);
+                    waveSystem.currentWaves.Add(new Wave
+                    {
+                        Center = new Vector3((int) x.x + Width / 2, 0, (int) x.z + Height / 2),
+                        Strength = 8f,
+                        StartTime = Time.timeSinceLevelLoad
+                    });
+                }
+            }
 
-            _mesh.Clear();
+            //if (_animate)
+            {
+                DoFluctuate();
+                UpdateMap();
 
-            _mesh.vertices = _vertices;
-            _mesh.triangles = _tris.ToArray();
+                _mesh.Clear();
 
-            _mesh.RecalculateNormals();
-            _mesh.RecalculateBounds();
-			currentTime += Time.deltaTime;
+                _mesh.vertices = _vertices;
+                _mesh.triangles = _trisCache;
+
+                _mesh.RecalculateNormals();
+                _mesh.RecalculateBounds();
+            }
+            //_animate ^= true;
+        }
+
+        private void OnDrawGizmos()
+        {
+            for (int i = 0; i < Width + 1; i++)
+            {
+                for (int j = 0; j < Height + 1; j++)
+                {
+                    Gizmos.DrawLine(new Vector3(i, 0, j), new Vector3(i, _forces[i, j].magnitude, j));
+                }
+            }
         }
     }
 }

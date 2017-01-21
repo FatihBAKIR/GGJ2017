@@ -98,6 +98,7 @@ namespace DefaultNamespace
 
             Update();
 
+            var a = Wave.Lookup;
             GetComponent<MeshFilter>().mesh = _mesh;
         }
 
@@ -204,7 +205,7 @@ namespace DefaultNamespace
                     waveSystem.currentWaves.Add(new Wave
                     {
                         Center = new Vector3((int) x.x + Width / 2, 0, (int) x.z + Height / 2),
-                        Strength = 8f + _hold,
+                        Strength = 8f + _hold * 3,
                         StartTime = Time.timeSinceLevelLoad
                     });
                 }

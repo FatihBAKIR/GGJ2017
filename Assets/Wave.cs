@@ -100,8 +100,6 @@ public class Wave
         var t = waveCurrLength / WaveSystem.maxDistance;
         var waveWidth = Strength - t * 8;
 
-        //Debug.Log(waveWidth);
-
         var big_radius = Math.Min(29, waveCurrLength + waveWidth / 2);
         var small_radius = Math.Max(1, big_radius - waveWidth);
 
@@ -121,7 +119,7 @@ public class Wave
                 if (distance < waveCurrLength + waveWidth / 2 && distance > waveCurrLength - waveWidth / 2)
                 {
                     var diff = (waveCurrLength + waveWidth / 2) - distance;
-                    var totalChange = Mathf.Sin((diff - waveWidth) / waveWidth * Mathf.PI) / 3f;
+                    var totalChange = Mathf.Sin((diff - waveWidth) / waveWidth * Mathf.PI) / 3f * ((Strength + 2) / 10);
                     var totalForce = (point - Center).normalized * totalChange * (1 - t);
 
                     yield return new WaveResult{Point = point, Force = totalForce, Height = totalChange};

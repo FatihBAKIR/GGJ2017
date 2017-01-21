@@ -1,4 +1,4 @@
-Shader "Standard"
+Shader "SuperShader"
 {
 	Properties
 	{
@@ -8,12 +8,11 @@ Shader "Standard"
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
 		_Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
-		_GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
-		[Enum(Metallic Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel ("Smoothness texture channel", Float) = 0
+		_GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
+		[Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel ("Smoothness texture channel", Float) = 0
 
-		[Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
-		_MetallicGlossMap("Metallic", 2D) = "white" {}
-
+		_SpecColor("Specular", Color) = (0.2,0.2,0.2)
+		_SpecGlossMap("Specular", 2D) = "white" {}
 		[ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
 		[ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
@@ -46,7 +45,7 @@ Shader "Standard"
 	}
 
 	CGINCLUDE
-		#define UNITY_SETUP_BRDF_INPUT MetallicSetup
+		#define UNITY_SETUP_BRDF_INPUT SpecularSetup
 	ENDCG
 
 	SubShader
@@ -73,7 +72,7 @@ Shader "Standard"
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
 			#pragma shader_feature _EMISSION
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature ___ _DETAIL_MULX2
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
@@ -105,10 +104,9 @@ Shader "Standard"
 
 			// -------------------------------------
 
-
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
 			#pragma shader_feature ___ _DETAIL_MULX2
@@ -116,7 +114,6 @@ Shader "Standard"
 
 			#pragma multi_compile_fwdadd_fullshadows
 			#pragma multi_compile_fog
-
 
 			#pragma vertex vertAdd
 			#pragma fragment fragAdd
@@ -139,7 +136,7 @@ Shader "Standard"
 
 
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _PARALLAXMAP
 			#pragma multi_compile_shadowcaster
 
@@ -167,7 +164,7 @@ Shader "Standard"
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
 			#pragma shader_feature _EMISSION
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
 			#pragma shader_feature ___ _DETAIL_MULX2
@@ -201,7 +198,7 @@ Shader "Standard"
 			#pragma fragment frag_meta
 
 			#pragma shader_feature _EMISSION
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature ___ _DETAIL_MULX2
 
@@ -231,15 +228,15 @@ Shader "Standard"
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
 			#pragma shader_feature _EMISSION 
-			#pragma shader_feature _METALLICGLOSSMAP 
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
 			#pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
-			// SM2.0: NOT SUPPORTED shader_feature ___ _DETAIL_MULX2
+			#pragma shader_feature ___ _DETAIL_MULX2
 			// SM2.0: NOT SUPPORTED shader_feature _PARALLAXMAP
 
-			#pragma skip_variants SHADOWS_SOFT DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
-
+			#pragma skip_variants SHADOWS_SOFT DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
+			
 			#pragma multi_compile_fwdbase
 			#pragma multi_compile_fog
 
@@ -265,7 +262,7 @@ Shader "Standard"
 
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
 			#pragma shader_feature ___ _DETAIL_MULX2
@@ -293,7 +290,7 @@ Shader "Standard"
 			#pragma target 2.0
 
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma skip_variants SHADOWS_SOFT
 			#pragma multi_compile_shadowcaster
 
@@ -304,7 +301,6 @@ Shader "Standard"
 
 			ENDCG
 		}
-
 		// ------------------------------------------------------------------
 		// Extracts information for lightmapping, GI (emission, albedo, ...)
 		// This pass it not used during regular rendering.
@@ -320,7 +316,7 @@ Shader "Standard"
 			#pragma fragment frag_meta
 
 			#pragma shader_feature _EMISSION
-			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature ___ _DETAIL_MULX2
 
@@ -328,7 +324,6 @@ Shader "Standard"
 			ENDCG
 		}
 	}
-
 
 	FallBack "VertexLit"
 	CustomEditor "StandardShaderGUI"

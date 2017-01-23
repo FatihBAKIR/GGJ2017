@@ -6,6 +6,8 @@ namespace DefaultNamespace
 {
     public class Water : MonoBehaviour
     {
+        public AudioClip Fosurtu;
+
         public int Width;
         public int Height;
 
@@ -29,6 +31,7 @@ namespace DefaultNamespace
 
         public void Start()
         {
+            _gm = FindObjectOfType<Master>();
             _forces = new Vector3[Width + 1, Height + 1];
             _map = new float[Width + 1, Height + 1];
             _fluctuate = new float[Width + 1, Height + 1];
@@ -108,7 +111,7 @@ namespace DefaultNamespace
             {
                 for (int j = 0; j < Height + 1; j += Resolution)
                 {
-                    _fluctuate[i, j] += Random.Range(0.005f, 0.015f);
+                    _fluctuate[i, j] += Random.Range(0.005f, 0.015f) * 2;
                     _map[i, j] = BaseDepth + Mathf.Sin(_fluctuate[i, j]) / 2.5f + 0.5f;
                     _forces[i, j] = Vector3.zero;
                 }
@@ -185,29 +188,48 @@ namespace DefaultNamespace
         private bool _animate;
 
         private float _hold;
+
+        private Master _gm;
+
+        private Queue<float> _soundTimes = new Queue<float>();
         public void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            var curTime = Time.timeSinceLevelLoad;
+            while (_soundTimes.Count > 0 && _soundTimes.Peek() <= curTime)
             {
-                _hold = 0;
+                _soundTimes.Dequeue();
             }
-            if (Input.GetMouseButton(0))
+
+            if (!_gm || _gm.GameActive)
             {
-                _hold += Time.deltaTime;
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit rh;
-                if (Physics.Raycast(r, out rh))
+                if (Input.GetMouseButtonDown(0))
                 {
-                    var x = transform.InverseTransformPoint(rh.point);
-                    waveSystem.currentWaves.Add(new Wave
+                    _hold = 0;
+                }
+                if (Input.GetMouseButton(0))
+                {
+                    _hold += Time.deltaTime;
+                }
+                if (Input.GetMouseButtonUp(0))
+                {
+                    Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    RaycastHit rh;
+                    if (Physics.Raycast(r, out rh))
                     {
-                        Center = new Vector3((int) x.x + Width / 2, 0, (int) x.z + Height / 2),
-                        Strength = 8f + _hold * 3,
-                        StartTime = Time.timeSinceLevelLoad
-                    });
+                        var x = transform.InverseTransformPoint(rh.point);
+                        waveSystem.currentWaves.Add(new Wave
+                        {
+                            Center = new Vector3((int) x.x + Width / 2, 0, (int) x.z + Height / 2),
+                            Strength = 8f + _hold * 3,
+                            StartTime = Time.timeSinceLevelLoad
+                        });
+
+                        if (_soundTimes.Count < 3)
+                        {
+                            GetComponent<AudioSource>().PlayOneShot(Fosurtu, 0.75f);
+                            _soundTimes.Enqueue(curTime + Fosurtu.length);
+                        }
+                    }
                 }
             }
 
@@ -224,9 +246,9 @@ namespace DefaultNamespace
 
         private void OnDrawGizmos()
         {
-            for (int i = 0; i < Width + 1; i++)
+            for (int i = 0; i < Width; i++)
             {
-                for (int j = 0; j < Height + 1; j++)
+                for (int j = 0; j < Height; j++)
                 {
                     Gizmos.DrawLine(new Vector3(i, 0, j), new Vector3(i, _forces[i, j].magnitude, j));
                 }

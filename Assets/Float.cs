@@ -20,6 +20,9 @@ public class Float : MonoBehaviour
     }
 
     private float _curSpeed = 0.25f;
+    public bool Sunk { get; private set; }
+
+    private float _lastScream = -5;
 
     // Update is called once per frame
     void Update()
@@ -30,10 +33,22 @@ public class Float : MonoBehaviour
 
         var currChange = currentRot - rotCache;
         var speed = currChange > 0.05 || currChange < -0.05;
-		if(currChange > 0.4f || currChange < -0.4f&&ApplyForces){
+
+        if (currChange > 0.3f || currChange < -0.3f && ApplyForces)
+        {
+            if (Time.timeSinceLevelLoad - _lastScream >= GetComponent<Explode>().Scream.length + 5)
+            {
+                GetComponent<AudioSource>().PlayOneShot(GetComponent<Explode>().Scream, 0.33f);
+                _lastScream = Time.timeSinceLevelLoad;
+            }
+        }
+
+		if(currChange > 0.4f || currChange < -0.4f && ApplyForces){
 			transform.Translate (new Vector3 (0, -0.5f, 0));
 			rotCache = transform.rotation.x;
 			ApplyForces = false;
+		    Sunk = true;
+		    FindObjectOfType<Master>().PlayerLost();
 		}
         if (isAdd)
 		{   _curSpeed += acc?0.002f:-0.002f;
@@ -57,17 +72,22 @@ public class Float : MonoBehaviour
 			acc = true;
 		} 
 		if (acc&&((currentRot>0&&isAdd)||currentRot<0&&!isAdd)) {
-			Debug.Log ("change");
 			acc = false;
 		}
-	
+
         if (ApplyForces)
         {
             var force = _water.GetForce(posInWater);
+            if (force.sqrMagnitude > 0.0001)
+            {
+                GetComponent<AudioSource>().volume = 1;
+            }
+            else
+            {
+                GetComponent<AudioSource>().volume = 0.4f;
+            }
             transform.Translate(force * Time.deltaTime, Space.World);
-            transform.Rotate(new Vector3(force.x * Time.deltaTime * 360, 0, 0));
-
-		}	
-
+            transform.Rotate(new Vector3(force.x * Time.deltaTime * 180, 0, 0));
+        }
     }
 }
